@@ -15,10 +15,38 @@ export type CoverLayout = {
   top: number;
 };
 
+// Clamps a single axis: if the image is at least as large as the frame on
+// this axis, keep it pinned inside the frame (no blank edges). Otherwise
+// (zoomed out past "cover", i.e. letterboxing) center it instead.
+export function clampAxis(ideal: number, size: number, frameSize: number): number {
+  if (size <= frameSize) {
+    return (frameSize - size) / 2;
+  }
+  return Math.min(0, Math.max(frameSize - size, ideal));
+}
+
+// The smallest `scale` (relative to the "cover fit" baseline) that still
+// keeps the whole image on-screen — i.e. "contain" fit. Below this there's
+// nothing more of the image left to reveal.
+export function getMinScale({
+  naturalWidth,
+  naturalHeight,
+  frameWidth,
+  frameHeight,
+}: Pick<
+  CoverLayoutInput,
+  'naturalWidth' | 'naturalHeight' | 'frameWidth' | 'frameHeight'
+>): number {
+  const coverScale = Math.max(frameWidth / naturalWidth, frameHeight / naturalHeight);
+  const containScale = Math.min(frameWidth / naturalWidth, frameHeight / naturalHeight);
+  return containScale / coverScale;
+}
+
 // Computes the size/position of an image rendered at `scale` times the
 // "cover fit" baseline, anchored so the point (positionX%, positionY%) of
-// the image sits at the frame's center, clamped so the image always fully
-// covers the frame (no blank edges).
+// the image sits at the frame's center. Scale >= 1 crops in (clamped so
+// there are no blank edges); scale < 1 zooms out past "cover" and centers
+// the image instead, letterboxing whichever axis no longer fills the frame.
 export function computeCoverLayout({
   naturalWidth,
   naturalHeight,
@@ -39,8 +67,8 @@ export function computeCoverLayout({
   const idealLeft = frameWidth / 2 - (positionX / 100) * width;
   const idealTop = frameHeight / 2 - (positionY / 100) * height;
 
-  const left = Math.min(0, Math.max(frameWidth - width, idealLeft));
-  const top = Math.min(0, Math.max(frameHeight - height, idealTop));
+  const left = clampAxis(idealLeft, width, frameWidth);
+  const top = clampAxis(idealTop, height, frameHeight);
 
   return { width, height, left, top };
 }

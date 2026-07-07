@@ -45,7 +45,13 @@ export function CoverImage({
   }, [src, positionX, positionY, scale]);
 
   return (
-    <div ref={frameRef} className={cn('relative overflow-hidden', className)}>
+    <div
+      ref={frameRef}
+      className={cn(
+        'relative overflow-hidden bg-gradient-to-br from-primary/20 via-secondary/10 to-accent',
+        className
+      )}
+    >
       <img
         ref={imgRef}
         src={src}

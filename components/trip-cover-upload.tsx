@@ -17,12 +17,13 @@ import { Slider } from '@/components/ui/slider';
 import { setTripCover } from '@/app/trips/[tripId]/actions';
 import { createClient } from '@/lib/supabase/client';
 import {
+  clampAxis,
   computeCoverLayout,
+  getMinScale,
   layoutToPosition,
   type CoverLayout,
 } from '@/lib/cover-image';
 
-const MIN_SCALE = 1;
 const MAX_SCALE = 3;
 
 export function TripCoverUpload({
@@ -39,6 +40,7 @@ export function TripCoverUpload({
     height: number;
   } | null>(null);
   const [scale, setScale] = useState(1);
+  const [minScale, setMinScale] = useState(1);
   const [layout, setLayout] = useState<CoverLayout | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -56,6 +58,7 @@ export function TripCoverUpload({
 
     setFile(selected);
     setScale(1);
+    setMinScale(1);
     setNaturalSize(null);
     setLayout(null);
     setPreviewUrl(URL.createObjectURL(selected));
@@ -67,13 +70,24 @@ export function TripCoverUpload({
     if (!frame) return;
 
     const size = { width: img.naturalWidth, height: img.naturalHeight };
+    const frameWidth = frame.clientWidth;
+    const frameHeight = frame.clientHeight;
+
     setNaturalSize(size);
+    setMinScale(
+      getMinScale({
+        naturalWidth: size.width,
+        naturalHeight: size.height,
+        frameWidth,
+        frameHeight,
+      })
+    );
     setLayout(
       computeCoverLayout({
         naturalWidth: size.width,
         naturalHeight: size.height,
-        frameWidth: frame.clientWidth,
-        frameHeight: frame.clientHeight,
+        frameWidth,
+        frameHeight,
         scale: 1,
         positionX: 50,
         positionY: 50,
@@ -131,13 +145,15 @@ export function TripCoverUpload({
     const deltaX = e.clientX - dragState.current.startX;
     const deltaY = e.clientY - dragState.current.startY;
 
-    const left = Math.min(
-      0,
-      Math.max(frameWidth - layout.width, dragState.current.left + deltaX)
+    const left = clampAxis(
+      dragState.current.left + deltaX,
+      layout.width,
+      frameWidth
     );
-    const top = Math.min(
-      0,
-      Math.max(frameHeight - layout.height, dragState.current.top + deltaY)
+    const top = clampAxis(
+      dragState.current.top + deltaY,
+      layout.height,
+      frameHeight
     );
 
     setLayout({ ...layout, left, top });
@@ -220,7 +236,7 @@ export function TripCoverUpload({
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              className="relative h-36 w-full touch-none overflow-hidden rounded-lg bg-muted select-none"
+              className="relative h-36 w-full touch-none overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 via-secondary/10 to-accent select-none"
             >
               <img
                 src={previewUrl}
@@ -247,7 +263,7 @@ export function TripCoverUpload({
             <Slider
               value={[scale]}
               onValueChange={handleScaleChange}
-              min={MIN_SCALE}
+              min={minScale}
               max={MAX_SCALE}
               step={0.05}
               disabled={!layout}
