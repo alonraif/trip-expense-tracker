@@ -187,7 +187,11 @@ export function AddExpenseDialog({
             <Label htmlFor="payerId">Paid by</Label>
             <Select name="payerId" required>
               <SelectTrigger id="payerId" className="w-full">
-                <SelectValue placeholder="Select a member" />
+                <SelectValue placeholder="Select a member">
+                  {(id: string) =>
+                    members.find((member) => member.id === id)?.name
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {members.map((member) => (

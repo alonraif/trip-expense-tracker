@@ -13,7 +13,7 @@ export default async function ExpensesPage({
   const [{ data: expenses }, { data: members }] = await Promise.all([
     supabase
       .from('expenses')
-      .select('id, description, amount, expense_date, receipt_url, trip_members(name)')
+      .select('id, description, amount, expense_date, receipt_url, payer_id')
       .eq('trip_id', tripId)
       .order('expense_date', { ascending: false }),
     supabase
@@ -22,6 +22,8 @@ export default async function ExpensesPage({
       .eq('trip_id', tripId)
       .order('created_at', { ascending: true }),
   ]);
+
+  const memberNameById = new Map((members ?? []).map((m) => [m.id, m.name]));
 
   const expensesWithReceipts = await Promise.all(
     (expenses ?? []).map(async (expense) => {
@@ -55,7 +57,9 @@ export default async function ExpensesPage({
               <div>
                 <p className="font-medium">{expense.description}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge variant="outline">{expense.trip_members?.[0]?.name}</Badge>
+                  <Badge variant="outline">
+                    {memberNameById.get(expense.payer_id)}
+                  </Badge>
                   <span>
                     {new Date(expense.expense_date).toLocaleDateString()}
                   </span>

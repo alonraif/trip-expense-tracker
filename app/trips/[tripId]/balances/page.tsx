@@ -56,8 +56,8 @@ export default async function BalancesPage({
                       : 'font-semibold text-muted-foreground'
                 }
               >
-                {balance.net > 0 ? '+' : ''}
-                ${balance.net.toFixed(2)}
+                {balance.net > 0 ? '+' : balance.net < 0 ? '-' : ''}$
+                {Math.abs(balance.net).toFixed(2)}
               </p>
             </div>
           ))}

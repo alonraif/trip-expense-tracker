@@ -26,7 +26,9 @@ export function TripSwitcher({
       onValueChange={(id) => router.push(`/trips/${id}`)}
     >
       <SelectTrigger size="sm" aria-label="Switch trip">
-        <SelectValue />
+        <SelectValue>
+          {(id: string) => trips.find((trip) => trip.id === id)?.name ?? id}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {trips.map((trip) => (
