@@ -13,7 +13,7 @@ export default async function ExpensesPage({
   const [{ data: expenses }, { data: members }] = await Promise.all([
     supabase
       .from('expenses')
-      .select('id, description, amount, expense_date, trip_members(name)')
+      .select('id, description, amount, expense_date, receipt_url, trip_members(name)')
       .eq('trip_id', tripId)
       .order('expense_date', { ascending: false }),
     supabase
@@ -23,19 +23,31 @@ export default async function ExpensesPage({
       .order('created_at', { ascending: true }),
   ]);
 
+  const expensesWithReceipts = await Promise.all(
+    (expenses ?? []).map(async (expense) => {
+      if (!expense.receipt_url) {
+        return { ...expense, receiptSignedUrl: null as string | null };
+      }
+      const { data } = await supabase.storage
+        .from('receipts')
+        .createSignedUrl(expense.receipt_url, 3600);
+      return { ...expense, receiptSignedUrl: data?.signedUrl ?? null };
+    })
+  );
+
   return (
     <div className="flex flex-col gap-4">
       {!members?.length ? (
         <p className="text-sm text-muted-foreground">
           Add trip members first, then start logging expenses.
         </p>
-      ) : !expenses?.length ? (
+      ) : !expensesWithReceipts.length ? (
         <p className="text-sm text-muted-foreground">
           No expenses yet. Tap the + button to add one.
         </p>
       ) : (
         <div className="flex flex-col gap-2">
-          {expenses.map((expense) => (
+          {expensesWithReceipts.map((expense) => (
             <div
               key={expense.id}
               className="flex items-center justify-between rounded-lg border p-3"
@@ -47,6 +59,16 @@ export default async function ExpensesPage({
                   <span>
                     {new Date(expense.expense_date).toLocaleDateString()}
                   </span>
+                  {expense.receiptSignedUrl && (
+                    <a
+                      href={expense.receiptSignedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Receipt
+                    </a>
+                  )}
                 </div>
               </div>
               <p className="font-semibold">${expense.amount.toFixed(2)}</p>
