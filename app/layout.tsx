@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { LogoutButton } from "@/components/logout-button";
 import { createClient } from "@/lib/supabase/server";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fontDisplay = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fontBody = Plus_Jakarta_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
@@ -33,12 +33,14 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fontDisplay.variable} ${fontBody.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {user && (
-          <header className="flex items-center justify-between border-b px-4 py-3">
-            <span className="font-semibold">Trip Expense Tracker</span>
+          <header className="flex items-center justify-between border-b border-primary/10 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 px-4 py-3">
+            <span className="font-heading text-lg font-semibold tracking-tight text-primary">
+              Trip Expense Tracker
+            </span>
             <LogoutButton />
           </header>
         )}
