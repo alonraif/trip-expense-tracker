@@ -31,6 +31,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is deployed on [Vercel](https://vercel.com), connected to this GitHub repo for automatic deploys on push to `main`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Known issue:** Next.js 16.2.x currently hits a bug in Vercel's *remote* build pipeline (their build machines fail applying Next's built-in Vercel adapter, even though local builds succeed). Until Vercel ships a fix, deploy manually instead of relying on the automatic git-push build:
+
+```bash
+npx vercel build --prod
+npx vercel deploy --prebuilt --prod
+```
+
+This builds locally and uploads the finished output directly, skipping Vercel's broken remote build step. The first time, you'll also need to run `npx vercel login` and `npx vercel link` to authenticate and connect this folder to the Vercel project.
