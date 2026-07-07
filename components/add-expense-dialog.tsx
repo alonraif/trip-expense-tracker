@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { CameraIcon, PlusIcon } from 'lucide-react';
+import { CameraIcon, ImageIcon, PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,18 +120,37 @@ export function AddExpenseDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-sm font-medium text-muted-foreground hover:border-foreground/30">
-          <CameraIcon className="size-4" />
-          {isScanning ? 'Scanning receipt...' : 'Scan a receipt'}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleScan}
-            disabled={isScanning}
-          />
-        </label>
+        {isScanning ? (
+          <div className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-sm font-medium text-muted-foreground">
+            Scanning receipt...
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed p-4 text-xs font-medium text-muted-foreground hover:border-foreground/30">
+              <CameraIcon className="size-4" />
+              Take photo
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleScan}
+                disabled={isScanning}
+              />
+            </label>
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed p-4 text-xs font-medium text-muted-foreground hover:border-foreground/30">
+              <ImageIcon className="size-4" />
+              Choose photo
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleScan}
+                disabled={isScanning}
+              />
+            </label>
+          </div>
+        )}
 
         <form
           ref={formRef}
