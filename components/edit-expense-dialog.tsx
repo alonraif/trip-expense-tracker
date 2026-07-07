@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { updateExpense } from '@/app/trips/[tripId]/expenses/actions';
+import { ExpenseSplitEditor, type Split } from '@/components/expense-split-editor';
 
 type Member = { id: string; name: string };
 type Expense = {
@@ -31,23 +32,31 @@ type Expense = {
   amount: number;
   expense_date: string;
   payer_id: string;
+  splits?: { member_id: string; amount: number }[];
 };
 
 export function EditExpenseDialog({
   tripId,
   expense,
   members,
+  currency,
 }: {
   tripId: string;
   expense: Expense;
   members: Member[];
+  currency: string;
 }) {
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(String(expense.amount));
   const [date, setDate] = useState(expense.expense_date);
+  const [splits, setSplits] = useState<Split[] | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const updateExpenseForTrip = updateExpense.bind(null, tripId, expense.id);
+
+  const initialSplits: Split[] | null = expense.splits?.length
+    ? expense.splits.map((s) => ({ memberId: s.member_id, amount: s.amount }))
+    : null;
 
   return (
     <Dialog
@@ -90,6 +99,11 @@ export function EditExpenseDialog({
           }}
           className="space-y-4"
         >
+          <input
+            type="hidden"
+            name="splits"
+            value={splits ? JSON.stringify(splits) : ''}
+          />
           <div className="space-y-2">
             <Label htmlFor="edit-description">Description</Label>
             <Input
@@ -141,6 +155,16 @@ export function EditExpenseDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Split</Label>
+            <ExpenseSplitEditor
+              members={members}
+              amount={amount}
+              currency={currency}
+              initialSplits={initialSplits}
+              onChange={setSplits}
+            />
           </div>
           <DialogFooter>
             <Button type="submit">Save changes</Button>

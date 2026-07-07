@@ -26,7 +26,9 @@ export default async function BalancesPage({
         .order('created_at', { ascending: true }),
       supabase
         .from('expenses')
-        .select('payer_id, amount, settle_amount')
+        .select(
+          'payer_id, amount, settle_amount, fx_rate, splits:expense_splits(member_id, amount)'
+        )
         .eq('trip_id', tripId),
     ]);
 
@@ -42,10 +44,19 @@ export default async function BalancesPage({
 
   const balances = computeBalances(
     members,
-    (expenses ?? []).map((e) => ({
-      payerId: e.payer_id,
-      amount: e.settle_amount ?? e.amount,
-    }))
+    (expenses ?? []).map((e) => {
+      const fxRate = e.fx_rate ?? 1;
+      return {
+        payerId: e.payer_id,
+        amount: e.settle_amount ?? e.amount,
+        splits: e.splits?.length
+          ? e.splits.map((s) => ({
+              memberId: s.member_id,
+              amount: s.amount * fxRate,
+            }))
+          : undefined,
+      };
+    })
   );
   const transactions = simplifyDebts(balances);
   const totalSpent = (expenses ?? []).reduce(

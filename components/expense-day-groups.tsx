@@ -18,6 +18,7 @@ type Expense = {
   expense_date: string;
   payer_id: string;
   receiptSignedUrl: string | null;
+  splits?: { member_id: string; amount: number }[];
 };
 type Group = { date: string; expenses: Expense[] };
 
@@ -118,6 +119,9 @@ export function ExpenseDayGroups({
                         <Badge variant="outline">
                           {memberNameById.get(expense.payer_id)}
                         </Badge>
+                        {!!expense.splits?.length && (
+                          <Badge variant="outline">Custom split</Badge>
+                        )}
                         {expense.receiptSignedUrl && (
                           <a
                             href={expense.receiptSignedUrl}
@@ -149,6 +153,7 @@ export function ExpenseDayGroups({
                         tripId={tripId}
                         expense={expense}
                         members={members}
+                        currency={currency}
                       />
                       <DeleteExpenseButton
                         tripId={tripId}

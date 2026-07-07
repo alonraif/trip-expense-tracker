@@ -22,7 +22,7 @@ export default async function ExpensesPage({
       supabase
         .from('expenses')
         .select(
-          'id, description, amount, settle_amount, expense_date, receipt_url, payer_id'
+          'id, description, amount, settle_amount, expense_date, receipt_url, payer_id, splits:expense_splits(member_id, amount)'
         )
         .eq('trip_id', tripId)
         .order('expense_date', { ascending: false }),
@@ -109,7 +109,11 @@ export default async function ExpensesPage({
         </>
       )}
 
-      <AddExpenseDialog tripId={tripId} members={members ?? []} />
+      <AddExpenseDialog
+        tripId={tripId}
+        members={members ?? []}
+        currency={currency}
+      />
     </div>
   );
 }

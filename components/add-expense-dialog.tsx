@@ -24,15 +24,18 @@ import {
 } from '@/components/ui/select';
 import { createExpense } from '@/app/trips/[tripId]/expenses/actions';
 import { createClient } from '@/lib/supabase/client';
+import { ExpenseSplitEditor, type Split } from '@/components/expense-split-editor';
 
 type Member = { id: string; name: string };
 
 export function AddExpenseDialog({
   tripId,
   members,
+  currency,
 }: {
   tripId: string;
   members: Member[];
+  currency: string;
 }) {
   const [open, setOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -40,6 +43,7 @@ export function AddExpenseDialog({
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('');
   const [receiptPath, setReceiptPath] = useState('');
+  const [splits, setSplits] = useState<Split[] | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const createExpenseForTrip = createExpense.bind(null, tripId);
 
@@ -48,6 +52,7 @@ export function AddExpenseDialog({
     setAmount('');
     setDate('');
     setReceiptPath('');
+    setSplits(null);
   };
 
   const handleScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +121,7 @@ export function AddExpenseDialog({
         <DialogHeader>
           <DialogTitle>Add expense</DialogTitle>
           <DialogDescription>
-            It&apos;ll be split evenly across everyone on the trip.
+            Splits evenly across everyone by default, or customize below.
           </DialogDescription>
         </DialogHeader>
 
@@ -168,6 +173,11 @@ export function AddExpenseDialog({
           className="space-y-4"
         >
           <input type="hidden" name="receiptUrl" value={receiptPath} />
+          <input
+            type="hidden"
+            name="splits"
+            value={splits ? JSON.stringify(splits) : ''}
+          />
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Input
@@ -220,6 +230,15 @@ export function AddExpenseDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Split</Label>
+            <ExpenseSplitEditor
+              members={members}
+              amount={amount}
+              currency={currency}
+              onChange={setSplits}
+            />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={members.length === 0}>

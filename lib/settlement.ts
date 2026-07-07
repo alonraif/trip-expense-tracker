@@ -3,9 +3,17 @@ export type SettlementMember = {
   name: string;
 };
 
+export type SettlementSplit = {
+  memberId: string;
+  amount: number;
+};
+
 export type SettlementExpense = {
   payerId: string;
   amount: number;
+  // Present = custom split for this expense; absent/empty = split evenly
+  // across all members.
+  splits?: SettlementSplit[];
 };
 
 export type Balance = {
@@ -32,21 +40,32 @@ export function computeBalances(
   members: SettlementMember[],
   expenses: SettlementExpense[]
 ): Balance[] {
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const share = members.length > 0 ? total / members.length : 0;
-
   const paidByMember = new Map<string, number>(members.map((m) => [m.id, 0]));
+  const owedByMember = new Map<string, number>(members.map((m) => [m.id, 0]));
+
   for (const e of expenses) {
     paidByMember.set(e.payerId, (paidByMember.get(e.payerId) ?? 0) + e.amount);
+
+    if (e.splits && e.splits.length > 0) {
+      for (const s of e.splits) {
+        owedByMember.set(s.memberId, (owedByMember.get(s.memberId) ?? 0) + s.amount);
+      }
+    } else {
+      const share = members.length > 0 ? e.amount / members.length : 0;
+      for (const m of members) {
+        owedByMember.set(m.id, (owedByMember.get(m.id) ?? 0) + share);
+      }
+    }
   }
 
   return members.map((m) => {
-    const paid = paidByMember.get(m.id) ?? 0;
+    const paid = round2(paidByMember.get(m.id) ?? 0);
+    const share = round2(owedByMember.get(m.id) ?? 0);
     return {
       memberId: m.id,
       name: m.name,
-      paid: round2(paid),
-      share: round2(share),
+      paid,
+      share,
       net: round2(paid - share),
     };
   });

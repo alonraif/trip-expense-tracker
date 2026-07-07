@@ -43,6 +43,7 @@ function parseExpenseForm(formData: FormData) {
   const amount = formData.get('amount');
   const date = formData.get('date');
   const payerId = formData.get('payerId');
+  const splitsRaw = formData.get('splits');
 
   if (typeof description !== 'string' || !description.trim()) {
     throw new Error('Description is required');
@@ -62,16 +63,35 @@ function parseExpenseForm(formData: FormData) {
       ? date
       : new Date().toISOString().slice(0, 10);
 
+  let splits: { memberId: string; amount: number }[] | null = null;
+  if (typeof splitsRaw === 'string' && splitsRaw) {
+    const parsed = JSON.parse(splitsRaw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      splits = parsed.map((s) => ({
+        memberId: String(s.memberId),
+        amount: Number(s.amount),
+      }));
+
+      const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
+      if (Math.abs(splitTotal - amountNum) > 0.01) {
+        throw new Error(
+          `Custom split must add up to the total (${splitTotal.toFixed(2)} vs ${amountNum.toFixed(2)})`
+        );
+      }
+    }
+  }
+
   return {
     description: description.trim(),
     amountNum,
     payerId,
     expenseDate,
+    splits,
   };
 }
 
 export async function createExpense(tripId: string, formData: FormData) {
-  const { description, amountNum, payerId, expenseDate } =
+  const { description, amountNum, payerId, expenseDate, splits } =
     parseExpenseForm(formData);
   const receiptUrl = formData.get('receiptUrl');
 
@@ -97,10 +117,27 @@ export async function createExpense(tripId: string, formData: FormData) {
     payload.receipt_url = receiptUrl;
   }
 
-  const { error } = await supabase.from('expenses').insert(payload);
+  const { data: expense, error } = await supabase
+    .from('expenses')
+    .insert(payload)
+    .select('id')
+    .single();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (splits) {
+    const { error: splitsError } = await supabase.from('expense_splits').insert(
+      splits.map((s) => ({
+        expense_id: expense.id,
+        member_id: s.memberId,
+        amount: s.amount,
+      }))
+    );
+    if (splitsError) {
+      throw new Error(splitsError.message);
+    }
   }
 
   revalidatePath(`/trips/${tripId}/expenses`);
@@ -112,7 +149,7 @@ export async function updateExpense(
   expenseId: string,
   formData: FormData
 ) {
-  const { description, amountNum, payerId, expenseDate } =
+  const { description, amountNum, payerId, expenseDate, splits } =
     parseExpenseForm(formData);
 
   const supabase = await createClient();
@@ -137,6 +174,27 @@ export async function updateExpense(
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  const { error: deleteSplitsError } = await supabase
+    .from('expense_splits')
+    .delete()
+    .eq('expense_id', expenseId);
+  if (deleteSplitsError) {
+    throw new Error(deleteSplitsError.message);
+  }
+
+  if (splits) {
+    const { error: splitsError } = await supabase.from('expense_splits').insert(
+      splits.map((s) => ({
+        expense_id: expenseId,
+        member_id: s.memberId,
+        amount: s.amount,
+      }))
+    );
+    if (splitsError) {
+      throw new Error(splitsError.message);
+    }
   }
 
   revalidatePath(`/trips/${tripId}/expenses`);
