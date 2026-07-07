@@ -35,7 +35,7 @@ export default async function TripLayout({
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <div className="relative flex h-36 w-full items-end overflow-hidden">
+      <div className="relative h-36 w-full overflow-hidden">
         {trip.cover_url ? (
           <CoverImage
             src={trip.cover_url}
@@ -47,11 +47,7 @@ export default async function TripLayout({
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-secondary/20 to-accent" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
-        <div className="relative flex w-full items-end justify-between gap-2 p-4">
-          <h1 className="truncate font-heading text-xl font-semibold text-white drop-shadow-sm">
-            {trip.name}
-          </h1>
+        <div className="absolute bottom-4 right-4">
           <TripCoverUpload tripId={tripId} hasCover={!!trip.cover_url} />
         </div>
       </div>
