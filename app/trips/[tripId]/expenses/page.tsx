@@ -1,7 +1,5 @@
-import { Badge } from '@/components/ui/badge';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
-import { EditExpenseDialog } from '@/components/edit-expense-dialog';
-import { DeleteExpenseButton } from '@/components/delete-expense-button';
+import { ExpenseDayGroups } from '@/components/expense-day-groups';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/format-currency';
@@ -39,8 +37,6 @@ export default async function ExpensesPage({
   const settleCurrency = trip?.settle_currency ?? 'USD';
   const showConversion = currency !== settleCurrency;
 
-  const memberNameById = new Map((members ?? []).map((m) => [m.id, m.name]));
-
   const expensesWithReceipts = await Promise.all(
     (expenses ?? []).map(async (expense) => {
       if (!expense.receipt_url) {
@@ -51,6 +47,22 @@ export default async function ExpensesPage({
         .createSignedUrl(expense.receipt_url, 3600);
       return { ...expense, receiptSignedUrl: data?.signedUrl ?? null };
     })
+  );
+
+  const groups: { date: string; expenses: typeof expensesWithReceipts }[] = [];
+  for (const expense of expensesWithReceipts) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === expense.expense_date) {
+      last.expenses.push(expense);
+    } else {
+      groups.push({ date: expense.expense_date, expenses: [expense] });
+    }
+  }
+
+  const total = expensesWithReceipts.reduce((sum, e) => sum + e.amount, 0);
+  const settleTotal = expensesWithReceipts.reduce(
+    (sum, e) => sum + (e.settle_amount ?? e.amount),
+    0
   );
 
   return (
@@ -70,58 +82,31 @@ export default async function ExpensesPage({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {expensesWithReceipts.map((expense) => (
-            <div
-              key={expense.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div>
-                <p className="font-medium">{expense.description}</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge variant="outline">
-                    {memberNameById.get(expense.payer_id)}
-                  </Badge>
-                  <span>
-                    {new Date(expense.expense_date).toLocaleDateString()}
-                  </span>
-                  {expense.receiptSignedUrl && (
-                    <a
-                      href={expense.receiptSignedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      Receipt
-                    </a>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="text-right">
-                  <p className="font-semibold">
-                    {formatCurrency(expense.amount, currency)}
-                  </p>
-                  {showConversion && (
-                    <p className="text-xs text-muted-foreground">
-                      ≈{' '}
-                      {formatCurrency(
-                        expense.settle_amount ?? expense.amount,
-                        settleCurrency
-                      )}
-                    </p>
-                  )}
-                </div>
-                <EditExpenseDialog
-                  tripId={tripId}
-                  expense={expense}
-                  members={members ?? []}
-                />
-                <DeleteExpenseButton tripId={tripId} expenseId={expense.id} />
-              </div>
+        <>
+          <ExpenseDayGroups
+            tripId={tripId}
+            groups={groups}
+            members={members ?? []}
+            currency={currency}
+            settleCurrency={settleCurrency}
+            showConversion={showConversion}
+          />
+          <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+            <span className="text-sm font-semibold text-muted-foreground">
+              Total
+            </span>
+            <div className="text-right">
+              <p className="text-lg font-bold">
+                {formatCurrency(total, currency)}
+              </p>
+              {showConversion && (
+                <p className="text-xs text-muted-foreground">
+                  ≈ {formatCurrency(settleTotal, settleCurrency)}
+                </p>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        </>
       )}
 
       <AddExpenseDialog tripId={tripId} members={members ?? []} />

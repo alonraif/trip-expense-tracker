@@ -48,9 +48,22 @@ export default async function BalancesPage({
     }))
   );
   const transactions = simplifyDebts(balances);
+  const totalSpent = (expenses ?? []).reduce(
+    (sum, e) => sum + (e.settle_amount ?? e.amount),
+    0
+  );
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+        <span className="text-sm font-semibold text-muted-foreground">
+          Total expenses
+        </span>
+        <span className="text-lg font-bold">
+          {formatCurrency(totalSpent, settleCurrency)}
+        </span>
+      </div>
+
       <div className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-muted-foreground">
           Net balances
