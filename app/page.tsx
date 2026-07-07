@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: trips } = await supabase
     .from('trips')
-    .select('id, name, created_at, cover_url')
+    .select('id, name, created_at, cover_url, cover_position_x, cover_position_y')
     .order('created_at', { ascending: false });
 
   return (
@@ -41,6 +41,9 @@ export default async function DashboardPage() {
                     src={trip.cover_url}
                     alt=""
                     className="h-32 w-full object-cover"
+                    style={{
+                      objectPosition: `${trip.cover_position_x}% ${trip.cover_position_y}%`,
+                    }}
                   />
                 ) : (
                   <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-primary/25 via-secondary/15 to-accent">

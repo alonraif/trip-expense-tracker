@@ -17,7 +17,7 @@ export default async function TripLayout({
   const [{ data: trip }, { data: trips }] = await Promise.all([
     supabase
       .from('trips')
-      .select('id, name, cover_url')
+      .select('id, name, cover_url, cover_position_x, cover_position_y')
       .eq('id', tripId)
       .single(),
     supabase
@@ -38,6 +38,9 @@ export default async function TripLayout({
             src={trip.cover_url}
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              objectPosition: `${trip.cover_position_x}% ${trip.cover_position_y}%`,
+            }}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-secondary/20 to-accent" />
