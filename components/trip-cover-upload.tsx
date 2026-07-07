@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { CameraIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -12,13 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { setTripCover } from '@/app/trips/[tripId]/actions';
 import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
+import {
+  computeCoverLayout,
+  layoutToPosition,
+  type CoverLayout,
+} from '@/lib/cover-image';
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
+const MIN_SCALE = 1;
+const MAX_SCALE = 3;
 
 export function TripCoverUpload({
   tripId,
@@ -29,20 +34,20 @@ export function TripCoverUpload({
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [naturalSize, setNaturalSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [scale, setScale] = useState(1);
+  const [layout, setLayout] = useState<CoverLayout | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
     startX: number;
     startY: number;
-    startPos: { x: number; y: number };
+    left: number;
+    top: number;
   } | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -50,29 +55,92 @@ export function TripCoverUpload({
     if (!selected) return;
 
     setFile(selected);
-    setPosition({ x: 50, y: 50 });
+    setScale(1);
+    setNaturalSize(null);
+    setLayout(null);
     setPreviewUrl(URL.createObjectURL(selected));
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const size = { width: img.naturalWidth, height: img.naturalHeight };
+    setNaturalSize(size);
+    setLayout(
+      computeCoverLayout({
+        naturalWidth: size.width,
+        naturalHeight: size.height,
+        frameWidth: frame.clientWidth,
+        frameHeight: frame.clientHeight,
+        scale: 1,
+        positionX: 50,
+        positionY: 50,
+      })
+    );
+  };
+
+  const handleScaleChange = (value: number | readonly number[]) => {
+    const nextScale = Array.isArray(value) ? value[0] : (value as number);
+    const frame = frameRef.current;
+    if (!frame || !naturalSize || !layout) {
+      setScale(nextScale);
+      return;
+    }
+
+    const frameWidth = frame.clientWidth;
+    const frameHeight = frame.clientHeight;
+    const { positionX, positionY } = layoutToPosition(
+      layout,
+      frameWidth,
+      frameHeight
+    );
+
+    setScale(nextScale);
+    setLayout(
+      computeCoverLayout({
+        naturalWidth: naturalSize.width,
+        naturalHeight: naturalSize.height,
+        frameWidth,
+        frameHeight,
+        scale: nextScale,
+        positionX,
+        positionY,
+      })
+    );
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!layout) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragState.current = {
       startX: e.clientX,
       startY: e.clientY,
-      startPos: position,
+      left: layout.left,
+      top: layout.top,
     };
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragState.current || !frameRef.current) return;
-    const { width, height } = frameRef.current.getBoundingClientRect();
+    const frame = frameRef.current;
+    if (!dragState.current || !frame || !layout) return;
+
+    const frameWidth = frame.clientWidth;
+    const frameHeight = frame.clientHeight;
     const deltaX = e.clientX - dragState.current.startX;
     const deltaY = e.clientY - dragState.current.startY;
 
-    setPosition({
-      x: clamp(dragState.current.startPos.x - (deltaX / width) * 100, 0, 100),
-      y: clamp(dragState.current.startPos.y - (deltaY / height) * 100, 0, 100),
-    });
+    const left = Math.min(
+      0,
+      Math.max(frameWidth - layout.width, dragState.current.left + deltaX)
+    );
+    const top = Math.min(
+      0,
+      Math.max(frameHeight - layout.height, dragState.current.top + deltaY)
+    );
+
+    setLayout({ ...layout, left, top });
   };
 
   const handlePointerUp = () => {
@@ -83,13 +151,22 @@ export function TripCoverUpload({
     setFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
+    setNaturalSize(null);
+    setLayout(null);
   };
 
   const handleSave = async () => {
-    if (!file) return;
+    const frame = frameRef.current;
+    if (!file || !layout || !frame) return;
 
     setIsUploading(true);
     try {
+      const { positionX, positionY } = layoutToPosition(
+        layout,
+        frame.clientWidth,
+        frame.clientHeight
+      );
+
       const supabase = createClient();
       const path = `${tripId}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage
@@ -104,7 +181,7 @@ export function TripCoverUpload({
         data: { publicUrl },
       } = supabase.storage.from('trip-covers').getPublicUrl(path);
 
-      await setTripCover(tripId, publicUrl, position.x, position.y);
+      await setTripCover(tripId, publicUrl, positionX, positionY, scale);
       closeDialog();
     } catch (error) {
       toast.error(
@@ -132,7 +209,9 @@ export function TripCoverUpload({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Position cover photo</DialogTitle>
-            <DialogDescription>Drag to adjust what shows in the frame.</DialogDescription>
+            <DialogDescription>
+              Drag to reposition and use the slider to zoom.
+            </DialogDescription>
           </DialogHeader>
 
           {previewUrl && (
@@ -141,26 +220,45 @@ export function TripCoverUpload({
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              className="relative h-36 w-full touch-none overflow-hidden rounded-lg select-none"
+              className="relative h-36 w-full touch-none overflow-hidden rounded-lg bg-muted select-none"
             >
               <img
                 src={previewUrl}
                 alt=""
                 draggable={false}
-                className={cn(
-                  'h-full w-full object-cover',
-                  'cursor-grab active:cursor-grabbing'
-                )}
-                style={{ objectPosition: `${position.x}% ${position.y}%` }}
+                onLoad={handleImageLoad}
+                className="absolute cursor-grab active:cursor-grabbing"
+                style={
+                  layout
+                    ? {
+                        width: layout.width,
+                        height: layout.height,
+                        left: layout.left,
+                        top: layout.top,
+                      }
+                    : { opacity: 0 }
+                }
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label>Zoom</Label>
+            <Slider
+              value={[scale]}
+              onValueChange={handleScaleChange}
+              min={MIN_SCALE}
+              max={MAX_SCALE}
+              step={0.05}
+              disabled={!layout}
+            />
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog} disabled={isUploading}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isUploading}>
+            <Button onClick={handleSave} disabled={isUploading || !layout}>
               {isUploading ? 'Saving...' : 'Save cover'}
             </Button>
           </DialogFooter>

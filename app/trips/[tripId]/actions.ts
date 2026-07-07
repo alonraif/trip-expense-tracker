@@ -7,7 +7,8 @@ export async function setTripCover(
   tripId: string,
   coverUrl: string,
   positionX: number,
-  positionY: number
+  positionY: number,
+  scale: number
 ) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -16,6 +17,7 @@ export async function setTripCover(
       cover_url: coverUrl,
       cover_position_x: positionX,
       cover_position_y: positionY,
+      cover_scale: scale,
     })
     .eq('id', tripId);
 

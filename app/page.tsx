@@ -8,13 +8,16 @@ import {
 } from '@/components/ui/card';
 import { CreateTripDialog } from '@/components/create-trip-dialog';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
+import { CoverImage } from '@/components/cover-image';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: trips } = await supabase
     .from('trips')
-    .select('id, name, created_at, cover_url, cover_position_x, cover_position_y')
+    .select(
+      'id, name, created_at, cover_url, cover_position_x, cover_position_y, cover_scale'
+    )
     .order('created_at', { ascending: false });
 
   return (
@@ -37,13 +40,12 @@ export default async function DashboardPage() {
             <Link key={trip.id} href={`/trips/${trip.id}`}>
               <Card className="transition hover:shadow-md">
                 {trip.cover_url ? (
-                  <img
+                  <CoverImage
                     src={trip.cover_url}
-                    alt=""
-                    className="h-32 w-full object-cover"
-                    style={{
-                      objectPosition: `${trip.cover_position_x}% ${trip.cover_position_y}%`,
-                    }}
+                    positionX={trip.cover_position_x}
+                    positionY={trip.cover_position_y}
+                    scale={trip.cover_scale}
+                    className="-mt-4 h-32 w-full rounded-t-xl"
                   />
                 ) : (
                   <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-primary/25 via-secondary/15 to-accent">
