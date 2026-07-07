@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { addMember } from '@/app/trips/[tripId]/members/actions';
@@ -13,8 +14,14 @@ export function AddMemberForm({ tripId }: { tripId: string }) {
     <form
       ref={formRef}
       action={async (formData: FormData) => {
-        await addMemberWithTrip(formData);
-        formRef.current?.reset();
+        try {
+          await addMemberWithTrip(formData);
+          formRef.current?.reset();
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : 'Failed to add member'
+          );
+        }
       }}
       className="flex gap-2"
     >

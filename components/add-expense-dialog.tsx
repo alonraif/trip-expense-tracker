@@ -136,9 +136,15 @@ export function AddExpenseDialog({
         <form
           ref={formRef}
           action={async (formData: FormData) => {
-            await createExpenseForTrip(formData);
-            resetForm();
-            setOpen(false);
+            try {
+              await createExpenseForTrip(formData);
+              resetForm();
+              setOpen(false);
+            } catch (error) {
+              toast.error(
+                error instanceof Error ? error.message : 'Failed to add expense'
+              );
+            }
           }}
           className="space-y-4"
         >
