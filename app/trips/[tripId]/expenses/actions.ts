@@ -3,9 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getExchangeRate } from '@/lib/fx';
+import { getServerLocale } from '@/lib/i18n/server';
+import { getDictionary, type Dictionary } from '@/lib/i18n';
 
 async function computeFxAndSettleAmount(
   supabase: Awaited<ReturnType<typeof createClient>>,
+  dict: Dictionary,
   tripId: string,
   amountNum: number,
   expenseDate: string
@@ -17,7 +20,7 @@ async function computeFxAndSettleAmount(
     .single();
 
   if (tripError || !trip) {
-    throw new Error(tripError?.message ?? 'Trip not found');
+    throw new Error(tripError?.message ?? dict.errors.tripNotFound);
   }
 
   let fxRate = 1;
@@ -38,7 +41,7 @@ async function computeFxAndSettleAmount(
   };
 }
 
-function parseExpenseForm(formData: FormData) {
+function parseExpenseForm(formData: FormData, dict: Dictionary) {
   const description = formData.get('description');
   const amount = formData.get('amount');
   const date = formData.get('date');
@@ -46,16 +49,16 @@ function parseExpenseForm(formData: FormData) {
   const splitsRaw = formData.get('splits');
 
   if (typeof description !== 'string' || !description.trim()) {
-    throw new Error('Description is required');
+    throw new Error(dict.errors.descriptionRequired);
   }
 
   const amountNum = Number(amount);
   if (!Number.isFinite(amountNum) || amountNum <= 0) {
-    throw new Error('Amount must be a positive number');
+    throw new Error(dict.errors.amountPositive);
   }
 
   if (typeof payerId !== 'string' || !payerId) {
-    throw new Error('Payer is required');
+    throw new Error(dict.errors.payerRequired);
   }
 
   const expenseDate =
@@ -75,7 +78,10 @@ function parseExpenseForm(formData: FormData) {
       const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
       if (Math.abs(splitTotal - amountNum) > 0.01) {
         throw new Error(
-          `Custom split must add up to the total (${splitTotal.toFixed(2)} vs ${amountNum.toFixed(2)})`
+          dict.errors.splitMismatch(
+            splitTotal.toFixed(2),
+            amountNum.toFixed(2)
+          )
         );
       }
     }
@@ -91,13 +97,16 @@ function parseExpenseForm(formData: FormData) {
 }
 
 export async function createExpense(tripId: string, formData: FormData) {
+  const supabase = await createClient();
+  const dict = getDictionary(await getServerLocale(supabase));
+
   const { description, amountNum, payerId, expenseDate, splits } =
-    parseExpenseForm(formData);
+    parseExpenseForm(formData, dict);
   const receiptUrl = formData.get('receiptUrl');
 
-  const supabase = await createClient();
   const { fxRate, settleAmount } = await computeFxAndSettleAmount(
     supabase,
+    dict,
     tripId,
     amountNum,
     expenseDate
@@ -149,12 +158,15 @@ export async function updateExpense(
   expenseId: string,
   formData: FormData
 ) {
-  const { description, amountNum, payerId, expenseDate, splits } =
-    parseExpenseForm(formData);
-
   const supabase = await createClient();
+  const dict = getDictionary(await getServerLocale(supabase));
+
+  const { description, amountNum, payerId, expenseDate, splits } =
+    parseExpenseForm(formData, dict);
+
   const { fxRate, settleAmount } = await computeFxAndSettleAmount(
     supabase,
+    dict,
     tripId,
     amountNum,
     expenseDate
