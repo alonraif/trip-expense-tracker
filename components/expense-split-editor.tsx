@@ -179,7 +179,7 @@ export function ExpenseSplitEditor({
           ))}
           <p
             className={cn(
-              'text-right text-xs',
+              'text-end text-xs',
               Math.abs(remaining) > 0.01
                 ? 'text-destructive'
                 : 'text-muted-foreground'

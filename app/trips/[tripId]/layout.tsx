@@ -61,7 +61,7 @@ export default async function TripLayout({
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-secondary/20 to-accent" />
         )}
-        <div className="absolute bottom-4 right-4">
+        <div className="absolute bottom-4 end-4">
           <TripCoverUpload tripId={tripId} hasCover={!!trip.cover_url} />
         </div>
       </div>

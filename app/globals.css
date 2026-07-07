@@ -133,4 +133,8 @@
   html {
     @apply font-sans;
   }
+  html[lang="he"] {
+    --font-display: var(--font-display-he);
+    --font-body: var(--font-body-he);
+  }
 }

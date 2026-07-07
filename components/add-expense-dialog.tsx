@@ -110,7 +110,7 @@ export function AddExpenseDialog({
         render={
           <Button
             size="icon"
-            className="fixed bottom-6 right-6 z-40 size-14 rounded-full shadow-lg"
+            className="fixed bottom-6 end-6 z-40 size-14 rounded-full shadow-lg"
             aria-label="Add expense"
           />
         }

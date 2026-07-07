@@ -90,7 +90,7 @@ export function ExpenseDayGroups({
             <button
               type="button"
               onClick={() => toggleDate(group.date)}
-              className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-left"
+              className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-start"
             >
               <span className="text-sm font-semibold">
                 {formatGroupDate(group.date, group.date === todayStr)}
@@ -135,7 +135,7 @@ export function ExpenseDayGroups({
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="text-right">
+                      <div className="text-end">
                         <p className="font-semibold">
                           {formatCurrency(expense.amount, currency)}
                         </p>

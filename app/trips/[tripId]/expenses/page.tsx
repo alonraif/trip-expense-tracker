@@ -95,7 +95,7 @@ export default async function ExpensesPage({
             <span className="text-sm font-semibold text-muted-foreground">
               Total
             </span>
-            <div className="text-right">
+            <div className="text-end">
               <p className="text-lg font-bold">
                 {formatCurrency(total, currency)}
               </p>
