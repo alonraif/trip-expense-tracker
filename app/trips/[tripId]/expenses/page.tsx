@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
+import { formatCurrency } from '@/lib/format-currency';
 
 export default async function ExpensesPage({
   params,
@@ -11,18 +12,30 @@ export default async function ExpensesPage({
   const { tripId } = await params;
   const supabase = await createClient();
 
-  const [{ data: expenses }, { data: members }] = await Promise.all([
-    supabase
-      .from('expenses')
-      .select('id, description, amount, expense_date, receipt_url, payer_id')
-      .eq('trip_id', tripId)
-      .order('expense_date', { ascending: false }),
-    supabase
-      .from('trip_members')
-      .select('id, name')
-      .eq('trip_id', tripId)
-      .order('created_at', { ascending: true }),
-  ]);
+  const [{ data: trip }, { data: expenses }, { data: members }] =
+    await Promise.all([
+      supabase
+        .from('trips')
+        .select('currency, settle_currency')
+        .eq('id', tripId)
+        .single(),
+      supabase
+        .from('expenses')
+        .select(
+          'id, description, amount, settle_amount, expense_date, receipt_url, payer_id'
+        )
+        .eq('trip_id', tripId)
+        .order('expense_date', { ascending: false }),
+      supabase
+        .from('trip_members')
+        .select('id, name')
+        .eq('trip_id', tripId)
+        .order('created_at', { ascending: true }),
+    ]);
+
+  const currency = trip?.currency ?? 'USD';
+  const settleCurrency = trip?.settle_currency ?? 'USD';
+  const showConversion = currency !== settleCurrency;
 
   const memberNameById = new Map((members ?? []).map((m) => [m.id, m.name]));
 
@@ -82,7 +95,20 @@ export default async function ExpensesPage({
                   )}
                 </div>
               </div>
-              <p className="font-semibold">${expense.amount.toFixed(2)}</p>
+              <div className="text-right">
+                <p className="font-semibold">
+                  {formatCurrency(expense.amount, currency)}
+                </p>
+                {showConversion && (
+                  <p className="text-xs text-muted-foreground">
+                    ≈{' '}
+                    {formatCurrency(
+                      expense.settle_amount ?? expense.amount,
+                      settleCurrency
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
