@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Fraunces, Plus_Jakarta_Sans, Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -61,9 +62,12 @@ export default async function RootLayout({
         <LocaleProvider locale={locale}>
           {user && (
             <header className="flex items-center justify-between border-b border-primary/10 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 px-4 py-3">
-              <span className="font-sans text-lg font-semibold text-primary">
+              <Link
+                href="/"
+                className="font-sans text-lg font-semibold text-primary"
+              >
                 {dict.brand}
-              </span>
+              </Link>
               <LogoutButton />
             </header>
           )}

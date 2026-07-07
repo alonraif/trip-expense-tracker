@@ -1,5 +1,5 @@
 const he = {
-  brand: 'עוקב הוצאות הטיול',
+  brand: 'מעקב הוצאות לטיול',
   appDescription: 'עקבו אחר הוצאות משותפות בטיול וסלקו חשבונות עם המשפחה',
   common: {
     cancel: 'ביטול',
@@ -38,8 +38,8 @@ const he = {
   expenses: {
     noMembersYet: 'הוסיפו חברים לטיול, ולאחר מכן התחילו לתעד הוצאות.',
     noExpensesYet: 'עדיין אין הוצאות. הקישו על כפתור ה-+ כדי להוסיף אחת.',
-    expandAll: 'הרחבת הכול',
-    collapseAll: 'כיווץ הכול',
+    expandAll: 'הרחב הכל',
+    collapseAll: 'כווץ הכל',
     today: 'היום',
     customSplitBadge: 'חלוקה מותאמת אישית',
     receipt: 'קבלה',
