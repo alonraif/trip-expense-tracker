@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { CreateTripDialog } from '@/components/create-trip-dialog';
+import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
@@ -24,9 +25,12 @@ export default async function DashboardPage() {
       </div>
 
       {!trips?.length ? (
-        <p className="text-sm text-muted-foreground">
-          No trips yet. Create one to start tracking expenses.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <EmptyStateIllustration className="size-28" />
+          <p className="text-sm text-muted-foreground">
+            No trips yet. Create one to start tracking expenses.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
           {trips.map((trip) => (

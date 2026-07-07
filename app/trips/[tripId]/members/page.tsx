@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { AddMemberForm } from '@/components/add-member-form';
 import { RemoveMemberButton } from '@/components/remove-member-button';
+import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function MembersPage({
@@ -27,9 +28,12 @@ export default async function MembersPage({
       <AddMemberForm tripId={tripId} />
 
       {!members?.length ? (
-        <p className="text-sm text-muted-foreground">
-          No members yet. Add everyone on the trip so expenses can be split.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <EmptyStateIllustration className="size-28" />
+          <p className="text-sm text-muted-foreground">
+            No members yet. Add everyone on the trip so expenses can be split.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {members.map((member) => (

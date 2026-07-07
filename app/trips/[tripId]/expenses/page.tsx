@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
+import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function ExpensesPage({
@@ -40,13 +41,19 @@ export default async function ExpensesPage({
   return (
     <div className="flex flex-col gap-4">
       {!members?.length ? (
-        <p className="text-sm text-muted-foreground">
-          Add trip members first, then start logging expenses.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <EmptyStateIllustration className="size-28" />
+          <p className="text-sm text-muted-foreground">
+            Add trip members first, then start logging expenses.
+          </p>
+        </div>
       ) : !expensesWithReceipts.length ? (
-        <p className="text-sm text-muted-foreground">
-          No expenses yet. Tap the + button to add one.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <EmptyStateIllustration className="size-28" />
+          <p className="text-sm text-muted-foreground">
+            No expenses yet. Tap the + button to add one.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {expensesWithReceipts.map((expense) => (

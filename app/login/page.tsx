@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
+import { TravelHero } from '@/components/illustrations/travel-hero';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,10 +43,11 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center p-4">
+    <main className="flex flex-1 flex-col items-center justify-center gap-6 bg-gradient-to-b from-primary/10 via-background to-secondary/10 p-4">
+      <TravelHero className="h-32 w-auto" />
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Trip Expense Tracker</CardTitle>
+          <CardTitle className="text-xl">Trip Expense Tracker</CardTitle>
           <CardDescription>Sign in with the shared family account</CardDescription>
         </CardHeader>
         <CardContent>
