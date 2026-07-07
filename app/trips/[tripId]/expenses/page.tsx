@@ -1,5 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
+import { EditExpenseDialog } from '@/components/edit-expense-dialog';
+import { DeleteExpenseButton } from '@/components/delete-expense-button';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/format-currency';
@@ -95,19 +97,27 @@ export default async function ExpensesPage({
                   )}
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold">
-                  {formatCurrency(expense.amount, currency)}
-                </p>
-                {showConversion && (
-                  <p className="text-xs text-muted-foreground">
-                    ≈{' '}
-                    {formatCurrency(
-                      expense.settle_amount ?? expense.amount,
-                      settleCurrency
-                    )}
+              <div className="flex items-center gap-1">
+                <div className="text-right">
+                  <p className="font-semibold">
+                    {formatCurrency(expense.amount, currency)}
                   </p>
-                )}
+                  {showConversion && (
+                    <p className="text-xs text-muted-foreground">
+                      ≈{' '}
+                      {formatCurrency(
+                        expense.settle_amount ?? expense.amount,
+                        settleCurrency
+                      )}
+                    </p>
+                  )}
+                </div>
+                <EditExpenseDialog
+                  tripId={tripId}
+                  expense={expense}
+                  members={members ?? []}
+                />
+                <DeleteExpenseButton tripId={tripId} expenseId={expense.id} />
               </div>
             </div>
           ))}
