@@ -23,6 +23,7 @@ import {
   layoutToPosition,
   type CoverLayout,
 } from '@/lib/cover-image';
+import { useTranslations } from '@/components/i18n-provider';
 
 const MAX_SCALE = 3;
 
@@ -33,6 +34,7 @@ export function TripCoverUpload({
   tripId: string;
   hasCover: boolean;
 }) {
+  const dict = useTranslations();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [naturalSize, setNaturalSize] = useState<{
@@ -201,7 +203,7 @@ export function TripCoverUpload({
       closeDialog();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to upload cover photo'
+        error instanceof Error ? error.message : dict.coverUpload.uploadError
       );
     } finally {
       setIsUploading(false);
@@ -212,7 +214,7 @@ export function TripCoverUpload({
     <>
       <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition hover:bg-black/55">
         <CameraIcon className="size-3.5" />
-        {hasCover ? 'Change cover' : 'Add cover photo'}
+        {hasCover ? dict.tripLayout.changeCover : dict.tripLayout.addCoverPhoto}
         <input
           type="file"
           accept="image/*"
@@ -224,10 +226,8 @@ export function TripCoverUpload({
       <Dialog open={!!previewUrl} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Position cover photo</DialogTitle>
-            <DialogDescription>
-              Drag to reposition and use the slider to zoom.
-            </DialogDescription>
+            <DialogTitle>{dict.coverUpload.title}</DialogTitle>
+            <DialogDescription>{dict.coverUpload.description}</DialogDescription>
           </DialogHeader>
 
           {previewUrl && (
@@ -259,7 +259,7 @@ export function TripCoverUpload({
           )}
 
           <div className="space-y-2">
-            <Label>Zoom</Label>
+            <Label>{dict.coverUpload.zoomLabel}</Label>
             <Slider
               value={[scale]}
               onValueChange={handleScaleChange}
@@ -272,10 +272,10 @@ export function TripCoverUpload({
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog} disabled={isUploading}>
-              Cancel
+              {dict.common.cancel}
             </Button>
             <Button onClick={handleSave} disabled={isUploading || !layout}>
-              {isUploading ? 'Saving...' : 'Save cover'}
+              {isUploading ? dict.coverUpload.saving : dict.coverUpload.save}
             </Button>
           </DialogFooter>
         </DialogContent>

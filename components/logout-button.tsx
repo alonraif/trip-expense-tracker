@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
+import { useTranslations } from '@/components/i18n-provider';
 
 export function LogoutButton() {
   const router = useRouter();
+  const dict = useTranslations();
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -16,7 +18,7 @@ export function LogoutButton() {
 
   return (
     <Button variant="ghost" size="sm" onClick={handleLogout}>
-      Log out
+      {dict.common.logout}
     </Button>
   );
 }

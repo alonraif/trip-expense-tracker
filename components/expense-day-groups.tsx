@@ -8,6 +8,9 @@ import { EditExpenseDialog } from '@/components/edit-expense-dialog';
 import { DeleteExpenseButton } from '@/components/delete-expense-button';
 import { formatCurrency } from '@/lib/format-currency';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/components/i18n-provider';
+import type { Locale } from '@/lib/i18n';
+import type { Dictionary } from '@/lib/i18n';
 
 type Member = { id: string; name: string };
 type Expense = {
@@ -22,9 +25,9 @@ type Expense = {
 };
 type Group = { date: string; expenses: Expense[] };
 
-function formatGroupDate(dateStr: string, isToday: boolean) {
-  if (isToday) return 'Today';
-  return new Date(dateStr).toLocaleDateString(undefined, {
+function formatGroupDate(dateStr: string, isToday: boolean, locale: Locale, dict: Dictionary) {
+  if (isToday) return dict.expenses.today;
+  return new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -38,6 +41,7 @@ export function ExpenseDayGroups({
   currency,
   settleCurrency,
   showConversion,
+  locale,
 }: {
   tripId: string;
   groups: Group[];
@@ -45,7 +49,9 @@ export function ExpenseDayGroups({
   currency: string;
   settleCurrency: string;
   showConversion: boolean;
+  locale: Locale;
 }) {
+  const dict = useTranslations();
   const todayStr = new Date().toISOString().slice(0, 10);
   const memberNameById = new Map(members.map((m) => [m.id, m.name]));
 
@@ -77,7 +83,7 @@ export function ExpenseDayGroups({
     <div className="flex flex-col gap-3">
       <div className="flex justify-end">
         <Button variant="ghost" size="sm" onClick={toggleAll}>
-          {allCollapsed ? 'Expand all' : 'Collapse all'}
+          {allCollapsed ? dict.expenses.expandAll : dict.expenses.collapseAll}
         </Button>
       </div>
 
@@ -93,7 +99,7 @@ export function ExpenseDayGroups({
               className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-start"
             >
               <span className="text-sm font-semibold">
-                {formatGroupDate(group.date, group.date === todayStr)}
+                {formatGroupDate(group.date, group.date === todayStr, locale, dict)}
               </span>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{formatCurrency(dayTotal, currency)}</span>
@@ -120,7 +126,9 @@ export function ExpenseDayGroups({
                           {memberNameById.get(expense.payer_id)}
                         </Badge>
                         {!!expense.splits?.length && (
-                          <Badge variant="outline">Custom split</Badge>
+                          <Badge variant="outline">
+                            {dict.expenses.customSplitBadge}
+                          </Badge>
                         )}
                         {expense.receiptSignedUrl && (
                           <a
@@ -129,7 +137,7 @@ export function ExpenseDayGroups({
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
                           >
-                            Receipt
+                            {dict.expenses.receipt}
                           </a>
                         )}
                       </div>

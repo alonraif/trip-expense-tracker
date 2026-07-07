@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { updateExpense } from '@/app/trips/[tripId]/expenses/actions';
 import { ExpenseSplitEditor, type Split } from '@/components/expense-split-editor';
+import { useTranslations } from '@/components/i18n-provider';
 
 type Member = { id: string; name: string };
 type Expense = {
@@ -46,6 +47,7 @@ export function EditExpenseDialog({
   members: Member[];
   currency: string;
 }) {
+  const dict = useTranslations();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(String(expense.amount));
@@ -72,16 +74,20 @@ export function EditExpenseDialog({
     >
       <DialogTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label="Edit expense" />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={dict.expenses.editExpense}
+          />
         }
       >
         <PencilIcon className="size-3.5" />
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit expense</DialogTitle>
+          <DialogTitle>{dict.editExpenseDialog.title}</DialogTitle>
           <DialogDescription>
-            Changing the amount or date recalculates the settle-up conversion.
+            {dict.editExpenseDialog.description}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +99,9 @@ export function EditExpenseDialog({
               setOpen(false);
             } catch (error) {
               toast.error(
-                error instanceof Error ? error.message : 'Failed to update expense'
+                error instanceof Error
+                  ? error.message
+                  : dict.editExpenseDialog.updateError
               );
             }
           }}
@@ -105,7 +113,9 @@ export function EditExpenseDialog({
             value={splits ? JSON.stringify(splits) : ''}
           />
           <div className="space-y-2">
-            <Label htmlFor="edit-description">Description</Label>
+            <Label htmlFor="edit-description">
+              {dict.addExpenseDialog.descriptionLabel}
+            </Label>
             <Input
               id="edit-description"
               name="description"
@@ -115,7 +125,9 @@ export function EditExpenseDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-amount">Amount</Label>
+            <Label htmlFor="edit-amount">
+              {dict.addExpenseDialog.amountLabel}
+            </Label>
             <Input
               id="edit-amount"
               name="amount"
@@ -128,7 +140,7 @@ export function EditExpenseDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-date">Date</Label>
+            <Label htmlFor="edit-date">{dict.addExpenseDialog.dateLabel}</Label>
             <Input
               id="edit-date"
               name="date"
@@ -138,10 +150,12 @@ export function EditExpenseDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-payerId">Paid by</Label>
+            <Label htmlFor="edit-payerId">
+              {dict.addExpenseDialog.paidByLabel}
+            </Label>
             <Select name="payerId" defaultValue={expense.payer_id} required>
               <SelectTrigger id="edit-payerId" className="w-full">
-                <SelectValue placeholder="Select a member">
+                <SelectValue placeholder={dict.addExpenseDialog.selectMember}>
                   {(id: string) =>
                     members.find((member) => member.id === id)?.name
                   }
@@ -157,7 +171,7 @@ export function EditExpenseDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Split</Label>
+            <Label>{dict.addExpenseDialog.splitLabel}</Label>
             <ExpenseSplitEditor
               members={members}
               amount={amount}
@@ -167,7 +181,7 @@ export function EditExpenseDialog({
             />
           </div>
           <DialogFooter>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit">{dict.editExpenseDialog.submit}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

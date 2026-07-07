@@ -3,6 +3,8 @@ import { ExpenseDayGroups } from '@/components/expense-day-groups';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/format-currency';
+import { getServerLocale } from '@/lib/i18n/server';
+import { getDictionary } from '@/lib/i18n';
 
 export default async function ExpensesPage({
   params,
@@ -11,6 +13,8 @@ export default async function ExpensesPage({
 }) {
   const { tripId } = await params;
   const supabase = await createClient();
+  const locale = await getServerLocale(supabase);
+  const dict = getDictionary(locale);
 
   const [{ data: trip }, { data: expenses }, { data: members }] =
     await Promise.all([
@@ -71,14 +75,14 @@ export default async function ExpensesPage({
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <EmptyStateIllustration className="size-28" />
           <p className="text-sm text-muted-foreground">
-            Add trip members first, then start logging expenses.
+            {dict.expenses.noMembersYet}
           </p>
         </div>
       ) : !expensesWithReceipts.length ? (
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <EmptyStateIllustration className="size-28" />
           <p className="text-sm text-muted-foreground">
-            No expenses yet. Tap the + button to add one.
+            {dict.expenses.noExpensesYet}
           </p>
         </div>
       ) : (
@@ -90,10 +94,11 @@ export default async function ExpensesPage({
             currency={currency}
             settleCurrency={settleCurrency}
             showConversion={showConversion}
+            locale={locale}
           />
           <div className="flex items-center justify-between rounded-lg border bg-card p-3">
             <span className="text-sm font-semibold text-muted-foreground">
-              Total
+              {dict.expenses.total}
             </span>
             <div className="text-end">
               <p className="text-lg font-bold">

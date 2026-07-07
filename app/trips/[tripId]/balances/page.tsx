@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/server';
 import { computeBalances, simplifyDebts } from '@/lib/settlement';
 import { formatCurrency } from '@/lib/format-currency';
+import { getServerLocale } from '@/lib/i18n/server';
+import { getDictionary } from '@/lib/i18n';
 
 export default async function BalancesPage({
   params,
@@ -11,6 +13,8 @@ export default async function BalancesPage({
 }) {
   const { tripId } = await params;
   const supabase = await createClient();
+  const locale = await getServerLocale(supabase);
+  const dict = getDictionary(locale);
 
   const [{ data: trip }, { data: members }, { data: expenses }] =
     await Promise.all([
@@ -37,7 +41,7 @@ export default async function BalancesPage({
   if (!members?.length) {
     return (
       <p className="text-sm text-muted-foreground">
-        Add trip members to see balances.
+        {dict.balances.addMembersFirst}
       </p>
     );
   }
@@ -68,7 +72,7 @@ export default async function BalancesPage({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between rounded-lg border bg-card p-3">
         <span className="text-sm font-semibold text-muted-foreground">
-          Total expenses
+          {dict.balances.totalExpenses}
         </span>
         <span className="text-lg font-bold">
           {formatCurrency(totalSpent, settleCurrency)}
@@ -77,7 +81,7 @@ export default async function BalancesPage({
 
       <div className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-muted-foreground">
-          Net balances
+          {dict.balances.netBalances}
         </h2>
         <div className="flex flex-col gap-2">
           {balances.map((balance) => (
@@ -105,11 +109,11 @@ export default async function BalancesPage({
 
       <div className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-muted-foreground">
-          Settle up
+          {dict.balances.settleUp}
         </h2>
         {!transactions.length ? (
           <p className="text-sm text-muted-foreground">
-            Everyone&apos;s settled up.
+            {dict.balances.allSettled}
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -120,7 +124,7 @@ export default async function BalancesPage({
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{tx.fromName}</span>
-                  <ArrowRightIcon className="size-4 text-muted-foreground" />
+                  <ArrowRightIcon className="size-4 text-muted-foreground rtl:-scale-x-100" />
                   <span className="font-medium">{tx.toName}</span>
                 </div>
                 <span className="font-semibold">

@@ -3,6 +3,8 @@ import { AddMemberForm } from '@/components/add-member-form';
 import { RemoveMemberButton } from '@/components/remove-member-button';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { createClient } from '@/lib/supabase/server';
+import { getServerLocale } from '@/lib/i18n/server';
+import { getDictionary } from '@/lib/i18n';
 
 export default async function MembersPage({
   params,
@@ -11,6 +13,8 @@ export default async function MembersPage({
 }) {
   const { tripId } = await params;
   const supabase = await createClient();
+  const locale = await getServerLocale(supabase);
+  const dict = getDictionary(locale);
 
   const [{ data: members }, { data: expenses }] = await Promise.all([
     supabase
@@ -31,7 +35,7 @@ export default async function MembersPage({
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <EmptyStateIllustration className="size-28" />
           <p className="text-sm text-muted-foreground">
-            No members yet. Add everyone on the trip so expenses can be split.
+            {dict.members.noMembersYet}
           </p>
         </div>
       ) : (

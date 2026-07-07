@@ -48,6 +48,7 @@ const he = {
     editExpense: 'עריכת הוצאה',
     deleteExpense: 'מחיקת הוצאה',
     confirmDelete: 'למחוק את ההוצאה הזו?',
+    deleteError: 'מחיקת ההוצאה נכשלה',
   },
   addExpenseDialog: {
     title: 'הוספת הוצאה',

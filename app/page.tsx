@@ -7,12 +7,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { CreateTripDialog } from '@/components/create-trip-dialog';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 import { CoverImage } from '@/components/cover-image';
 import { createClient } from '@/lib/supabase/server';
+import { getServerLocale } from '@/lib/i18n/server';
+import { getDictionary } from '@/lib/i18n';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const locale = await getServerLocale(supabase);
+  const dict = getDictionary(locale);
+  const dateLocale = locale === 'he' ? 'he-IL' : 'en-US';
+
   const { data: trips } = await supabase
     .from('trips')
     .select(
@@ -23,15 +30,19 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-semibold">Your Trips</h1>
+        <h1 className="font-heading text-2xl font-semibold">
+          {dict.dashboard.title}
+        </h1>
         <CreateTripDialog />
       </div>
+
+      <LocaleSwitcher />
 
       {!trips?.length ? (
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <EmptyStateIllustration className="size-28" />
           <p className="text-sm text-muted-foreground">
-            No trips yet. Create one to start tracking expenses.
+            {dict.dashboard.noTrips}
           </p>
         </div>
       ) : (
@@ -55,7 +66,9 @@ export default async function DashboardPage() {
                 <CardHeader>
                   <CardTitle>{trip.name}</CardTitle>
                   <CardDescription>
-                    Created {new Date(trip.created_at).toLocaleDateString()}
+                    {dict.dashboard.createdOn(
+                      new Date(trip.created_at).toLocaleDateString(dateLocale)
+                    )}
                   </CardDescription>
                 </CardHeader>
               </Card>

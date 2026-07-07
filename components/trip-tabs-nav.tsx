@@ -3,19 +3,25 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/components/i18n-provider';
+import type { Dictionary } from '@/lib/i18n';
 
-const TABS = [
-  { segment: 'expenses', label: 'Expenses' },
-  { segment: 'members', label: 'Members' },
-  { segment: 'balances', label: 'Balances' },
-];
+function getTabs(dict: Dictionary) {
+  return [
+    { segment: 'expenses', label: dict.tabs.expenses },
+    { segment: 'members', label: dict.tabs.members },
+    { segment: 'balances', label: dict.tabs.balances },
+  ];
+}
 
 export function TripTabsNav({ tripId }: { tripId: string }) {
   const pathname = usePathname();
+  const dict = useTranslations();
+  const tabs = getTabs(dict);
 
   return (
     <nav className="flex w-full items-center gap-1 rounded-lg bg-muted p-[3px]">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const href = `/trips/${tripId}/${tab.segment}`;
         const isActive = pathname === href;
         return (

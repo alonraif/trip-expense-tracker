@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from '@/components/i18n-provider';
 
 type Trip = { id: string; name: string };
 
@@ -19,13 +20,14 @@ export function TripSwitcher({
   currentTripId: string;
 }) {
   const router = useRouter();
+  const dict = useTranslations();
 
   return (
     <Select
       value={currentTripId}
       onValueChange={(id) => router.push(`/trips/${id}`)}
     >
-      <SelectTrigger size="sm" aria-label="Switch trip">
+      <SelectTrigger size="sm" aria-label={dict.tripLayout.switchTrip}>
         <SelectValue>
           {(id: string) => trips.find((trip) => trip.id === id)?.name ?? id}
         </SelectValue>

@@ -21,32 +21,33 @@ import {
 } from '@/components/ui/select';
 import { createTrip } from '@/app/trips/actions';
 import { CURRENCIES } from '@/lib/currencies';
+import { useTranslations } from '@/components/i18n-provider';
 
 export function CreateTripDialog() {
+  const dict = useTranslations();
+
   return (
     <Dialog>
-      <DialogTrigger render={<Button />}>New Trip</DialogTrigger>
+      <DialogTrigger render={<Button />}>{dict.dashboard.newTrip}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a trip</DialogTitle>
-          <DialogDescription>
-            Give this trip a name so you can track its expenses separately.
-          </DialogDescription>
+          <DialogTitle>{dict.createTrip.title}</DialogTitle>
+          <DialogDescription>{dict.createTrip.description}</DialogDescription>
         </DialogHeader>
         <form action={createTrip} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Trip name</Label>
+            <Label htmlFor="name">{dict.createTrip.nameLabel}</Label>
             <Input
               id="name"
               name="name"
               required
               autoFocus
-              placeholder="Summer 2026 Italy Trip"
+              placeholder={dict.createTrip.namePlaceholder}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{dict.createTrip.currencyLabel}</Label>
               <Select name="currency" defaultValue="USD">
                 <SelectTrigger id="currency" className="w-full">
                   <SelectValue />
@@ -61,7 +62,9 @@ export function CreateTripDialog() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="settleCurrency">Settle up in</Label>
+              <Label htmlFor="settleCurrency">
+                {dict.createTrip.settleCurrencyLabel}
+              </Label>
               <Select name="settleCurrency" defaultValue="USD">
                 <SelectTrigger id="settleCurrency" className="w-full">
                   <SelectValue />
@@ -77,7 +80,7 @@ export function CreateTripDialog() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Create</Button>
+            <Button type="submit">{dict.createTrip.submit}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

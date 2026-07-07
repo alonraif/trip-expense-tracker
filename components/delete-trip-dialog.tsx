@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { deleteTrip } from '@/app/trips/[tripId]/actions';
+import { useTranslations } from '@/components/i18n-provider';
 
 export function DeleteTripDialog({
   tripId,
@@ -28,6 +29,7 @@ export function DeleteTripDialog({
   memberCount: number;
   expenseCount: number;
 }) {
+  const dict = useTranslations();
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,7 +40,7 @@ export function DeleteTripDialog({
       await deleteTrip(tripId);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to delete trip'
+        error instanceof Error ? error.message : dict.deleteTrip.deleteError
       );
       setIsDeleting(false);
     }
@@ -58,7 +60,7 @@ export function DeleteTripDialog({
             variant="ghost"
             size="icon-sm"
             className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label="Delete trip"
+            aria-label={dict.tripLayout.deleteTrip}
           />
         }
       >
@@ -68,19 +70,16 @@ export function DeleteTripDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <TriangleAlertIcon className="size-4" />
-            Delete trip
+            {dict.deleteTrip.title}
           </DialogTitle>
           <DialogDescription>
-            This permanently deletes <strong>{tripName}</strong>,{' '}
-            {memberCount} member{memberCount === 1 ? '' : 's'}, and{' '}
-            {expenseCount} expense{expenseCount === 1 ? '' : 's'} — including
-            uploaded receipts and the cover photo. This cannot be undone.
+            {dict.deleteTrip.description(tripName, memberCount, expenseCount)}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
           <Label htmlFor="confirm-trip-name">
-            Type <strong>{tripName}</strong> to confirm
+            {dict.deleteTrip.confirmLabel(tripName)}
           </Label>
           <Input
             id="confirm-trip-name"
@@ -96,14 +95,14 @@ export function DeleteTripDialog({
             onClick={() => setOpen(false)}
             disabled={isDeleting}
           >
-            Cancel
+            {dict.common.cancel}
           </Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={confirmText !== tripName || isDeleting}
           >
-            {isDeleting ? 'Deleting...' : 'Delete trip permanently'}
+            {isDeleting ? dict.deleteTrip.deleting : dict.deleteTrip.deleteButton}
           </Button>
         </DialogFooter>
       </DialogContent>

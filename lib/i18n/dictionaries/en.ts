@@ -48,6 +48,7 @@ const en = {
     editExpense: 'Edit expense',
     deleteExpense: 'Delete expense',
     confirmDelete: 'Delete this expense?',
+    deleteError: 'Failed to delete expense',
   },
   addExpenseDialog: {
     title: 'Add expense',

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/format-currency';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/components/i18n-provider';
 
 type Member = { id: string; name: string };
 export type Split = { memberId: string; amount: number };
@@ -35,6 +36,7 @@ export function ExpenseSplitEditor({
   initialSplits?: Split[] | null;
   onChange: (splits: Split[] | null) => void;
 }) {
+  const dict = useTranslations();
   const [mode, setMode] = useState<'even' | 'custom'>(
     initialSplits && initialSplits.length > 0 ? 'custom' : 'even'
   );
@@ -142,7 +144,7 @@ export function ExpenseSplitEditor({
           size="sm"
           onClick={() => switchMode('even')}
         >
-          Split evenly
+          {dict.splitEditor.splitEvenly}
         </Button>
         <Button
           type="button"
@@ -150,7 +152,7 @@ export function ExpenseSplitEditor({
           size="sm"
           onClick={() => switchMode('custom')}
         >
-          Custom split
+          {dict.splitEditor.customSplit}
         </Button>
       </div>
 
@@ -163,7 +165,7 @@ export function ExpenseSplitEditor({
                 checked={included.has(member.id)}
                 onChange={() => toggleMember(member.id)}
                 className="size-4 accent-primary"
-                aria-label={`Include ${member.name}`}
+                aria-label={dict.splitEditor.include(member.name)}
               />
               <span className="flex-1 text-sm">{member.name}</span>
               <Input
@@ -185,7 +187,7 @@ export function ExpenseSplitEditor({
                 : 'text-muted-foreground'
             )}
           >
-            Remaining: {formatCurrency(remaining, currency)}
+            {dict.splitEditor.remaining(formatCurrency(remaining, currency))}
           </p>
         </div>
       )}

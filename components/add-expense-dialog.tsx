@@ -25,6 +25,7 @@ import {
 import { createExpense } from '@/app/trips/[tripId]/expenses/actions';
 import { createClient } from '@/lib/supabase/client';
 import { ExpenseSplitEditor, type Split } from '@/components/expense-split-editor';
+import { useTranslations } from '@/components/i18n-provider';
 
 type Member = { id: string; name: string };
 
@@ -37,6 +38,7 @@ export function AddExpenseDialog({
   members: Member[];
   currency: string;
 }) {
+  const dict = useTranslations();
   const [open, setOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [description, setDescription] = useState('');
@@ -71,7 +73,7 @@ export function AddExpenseDialog({
       const ocrData = await ocrResponse.json();
 
       if (!ocrResponse.ok) {
-        throw new Error(ocrData.error ?? 'Failed to scan receipt');
+        throw new Error(ocrData.error ?? dict.addExpenseDialog.scanError);
       }
 
       const supabase = createClient();
@@ -88,10 +90,10 @@ export function AddExpenseDialog({
       setAmount(ocrData.total ? String(ocrData.total) : '');
       setDate(ocrData.date ?? '');
       setReceiptPath(path);
-      toast.success('Receipt scanned — review the details below');
+      toast.success(dict.addExpenseDialog.scanSuccess);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to scan receipt'
+        error instanceof Error ? error.message : dict.addExpenseDialog.scanError
       );
     } finally {
       setIsScanning(false);
@@ -111,7 +113,7 @@ export function AddExpenseDialog({
           <Button
             size="icon"
             className="fixed bottom-6 end-6 z-40 size-14 rounded-full shadow-lg"
-            aria-label="Add expense"
+            aria-label={dict.expenses.addExpense}
           />
         }
       >
@@ -119,21 +121,21 @@ export function AddExpenseDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add expense</DialogTitle>
+          <DialogTitle>{dict.addExpenseDialog.title}</DialogTitle>
           <DialogDescription>
-            Splits evenly across everyone by default, or customize below.
+            {dict.addExpenseDialog.description}
           </DialogDescription>
         </DialogHeader>
 
         {isScanning ? (
           <div className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-sm font-medium text-muted-foreground">
-            Scanning receipt...
+            {dict.addExpenseDialog.scanning}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed p-4 text-xs font-medium text-muted-foreground hover:border-foreground/30">
               <CameraIcon className="size-4" />
-              Take photo
+              {dict.addExpenseDialog.takePhoto}
               <input
                 type="file"
                 accept="image/*"
@@ -145,7 +147,7 @@ export function AddExpenseDialog({
             </label>
             <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed p-4 text-xs font-medium text-muted-foreground hover:border-foreground/30">
               <ImageIcon className="size-4" />
-              Choose photo
+              {dict.addExpenseDialog.choosePhoto}
               <input
                 type="file"
                 accept="image/*"
@@ -166,7 +168,7 @@ export function AddExpenseDialog({
               setOpen(false);
             } catch (error) {
               toast.error(
-                error instanceof Error ? error.message : 'Failed to add expense'
+                error instanceof Error ? error.message : dict.addExpenseDialog.addError
               );
             }
           }}
@@ -179,18 +181,20 @@ export function AddExpenseDialog({
             value={splits ? JSON.stringify(splits) : ''}
           />
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">
+              {dict.addExpenseDialog.descriptionLabel}
+            </Label>
             <Input
               id="description"
               name="description"
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Dinner at Trattoria"
+              placeholder={dict.addExpenseDialog.descriptionPlaceholder}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">{dict.addExpenseDialog.amountLabel}</Label>
             <Input
               id="amount"
               name="amount"
@@ -203,7 +207,7 @@ export function AddExpenseDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">{dict.addExpenseDialog.dateLabel}</Label>
             <Input
               id="date"
               name="date"
@@ -213,10 +217,10 @@ export function AddExpenseDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="payerId">Paid by</Label>
+            <Label htmlFor="payerId">{dict.addExpenseDialog.paidByLabel}</Label>
             <Select name="payerId" required>
               <SelectTrigger id="payerId" className="w-full">
-                <SelectValue placeholder="Select a member">
+                <SelectValue placeholder={dict.addExpenseDialog.selectMember}>
                   {(id: string) =>
                     members.find((member) => member.id === id)?.name
                   }
@@ -232,7 +236,7 @@ export function AddExpenseDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Split</Label>
+            <Label>{dict.addExpenseDialog.splitLabel}</Label>
             <ExpenseSplitEditor
               members={members}
               amount={amount}
@@ -242,7 +246,7 @@ export function AddExpenseDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={members.length === 0}>
-              Add expense
+              {dict.addExpenseDialog.submit}
             </Button>
           </DialogFooter>
         </form>
