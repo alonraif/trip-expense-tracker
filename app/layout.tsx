@@ -38,7 +38,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {user && (
           <header className="flex items-center justify-between border-b border-primary/10 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 px-4 py-3">
-            <span className="font-heading text-lg font-semibold text-primary">
+            <span className="font-sans text-lg font-semibold text-primary">
               Trip Expense Tracker
             </span>
             <LogoutButton />
