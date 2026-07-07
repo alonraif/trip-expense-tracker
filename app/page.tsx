@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MapIcon } from 'lucide-react';
 import {
   Card,
   CardDescription,
@@ -12,13 +13,13 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: trips } = await supabase
     .from('trips')
-    .select('id, name, created_at')
+    .select('id, name, created_at, cover_url')
     .order('created_at', { ascending: false });
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Your Trips</h1>
+        <h1 className="font-heading text-2xl font-semibold">Your Trips</h1>
         <CreateTripDialog />
       </div>
 
@@ -30,7 +31,18 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-3">
           {trips.map((trip) => (
             <Link key={trip.id} href={`/trips/${trip.id}`}>
-              <Card className="transition hover:bg-accent">
+              <Card className="transition hover:shadow-md">
+                {trip.cover_url ? (
+                  <img
+                    src={trip.cover_url}
+                    alt=""
+                    className="h-32 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-primary/25 via-secondary/15 to-accent">
+                    <MapIcon className="size-8 text-primary/60" />
+                  </div>
+                )}
                 <CardHeader>
                   <CardTitle>{trip.name}</CardTitle>
                   <CardDescription>
