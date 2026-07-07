@@ -50,9 +50,9 @@ export default async function BalancesPage({
               <p
                 className={
                   balance.net > 0
-                    ? 'font-semibold text-green-600'
+                    ? 'font-semibold text-success'
                     : balance.net < 0
-                      ? 'font-semibold text-red-600'
+                      ? 'font-semibold text-destructive'
                       : 'font-semibold text-muted-foreground'
                 }
               >
